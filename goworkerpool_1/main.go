@@ -16,7 +16,7 @@ var (
 	dbConnString   = "root@/db_test"
 	dbMaxIdleConns = 4
 	dbMaxConns     = 100
-	totalWorker    = 100
+	totalWorker    = 200
 )
 
 type datatoto struct {
@@ -40,10 +40,15 @@ func main() {
 		log.Fatal(err.Error())
 	}
 	runtime.GOMAXPROCS(2)
-	totals := 9999
-	buffer := totals + 1
-	jobs := make(chan datatoto, buffer)
-	results := make(chan datatotoResult, buffer)
+	totals_5d := 99999
+	buffer_5d := totals_5d + 1
+	jobs_5d := make(chan datatoto, buffer_5d)
+	results_5d := make(chan datatotoResult, buffer_5d)
+
+	totals_4d := 9999
+	buffer_4d := totals_4d + 1
+	jobs_4d := make(chan datatoto, buffer_4d)
+	results_4d := make(chan datatotoResult, buffer_4d)
 
 	totals_3d := 999
 	buffer_3d := totals_3d + 1
@@ -58,27 +63,46 @@ func main() {
 	wg := &sync.WaitGroup{}
 
 	for w := 0; w < totalWorker; w++ {
-		wg.Add(3)
+		wg.Add(4)
 		mutex.Lock()
-		go doJob(w, jobs, results, db, wg)
+		go doJob(w, jobs_5d, results_5d, db, wg)
+		go doJob(w, jobs_4d, results_4d, db, wg)
 		go doJob(w, jobs_3d, results_3d, db, wg)
 		go doJob(w, jobs_2d, results_2d, db, wg)
 		mutex.Unlock()
 	}
-
-	for i := 0; i <= totals; i++ {
+	for i := 0; i <= totals_5d; i++ {
 		mutex.Lock()
 		if i >= 0 && i < 10 {
-			jobs <- datatoto{Permainan: "4D", Nomor: "000" + strconv.Itoa(i), Bet: 150}
+			jobs_5d <- datatoto{Permainan: "5D", Nomor: "0000" + strconv.Itoa(i), Bet: 150}
 		}
 		if i >= 10 && i <= 99 {
-			jobs <- datatoto{Permainan: "4D", Nomor: "00" + strconv.Itoa(i), Bet: 150}
+			jobs_5d <- datatoto{Permainan: "5D", Nomor: "000" + strconv.Itoa(i), Bet: 150}
 		}
 		if i >= 100 && i <= 999 {
-			jobs <- datatoto{Permainan: "4D", Nomor: "0" + strconv.Itoa(i), Bet: 150}
+			jobs_5d <- datatoto{Permainan: "5D", Nomor: "00" + strconv.Itoa(i), Bet: 150}
 		}
 		if i > 999 && i <= 9999 {
-			jobs <- datatoto{Permainan: "4D", Nomor: strconv.Itoa(i), Bet: 150}
+			jobs_5d <- datatoto{Permainan: "5D", Nomor: "0" + strconv.Itoa(i), Bet: 150}
+		}
+		if i > 9999 && i <= 99999 {
+			jobs_5d <- datatoto{Permainan: "5D", Nomor: strconv.Itoa(i), Bet: 150}
+		}
+		mutex.Unlock()
+	}
+	for i := 0; i <= totals_4d; i++ {
+		mutex.Lock()
+		if i >= 0 && i < 10 {
+			jobs_4d <- datatoto{Permainan: "4D", Nomor: "000" + strconv.Itoa(i), Bet: 150}
+		}
+		if i >= 10 && i <= 99 {
+			jobs_4d <- datatoto{Permainan: "4D", Nomor: "00" + strconv.Itoa(i), Bet: 150}
+		}
+		if i >= 100 && i <= 999 {
+			jobs_4d <- datatoto{Permainan: "4D", Nomor: "0" + strconv.Itoa(i), Bet: 150}
+		}
+		if i > 999 && i <= 9999 {
+			jobs_4d <- datatoto{Permainan: "4D", Nomor: strconv.Itoa(i), Bet: 150}
 		}
 		mutex.Unlock()
 	}
@@ -105,12 +129,16 @@ func main() {
 		}
 		mutex.Unlock()
 	}
-	close(jobs)
+	close(jobs_5d)
+	close(jobs_4d)
 	close(jobs_3d)
 	close(jobs_2d)
 
-	for a := 0; a <= totals; a++ { //RESUL
-		log.Println("Data Telah Disimpan :", <-results)
+	for a := 0; a <= totals_5d; a++ { //RESUL
+		log.Println("Data Telah Disimpan 5D :", <-results_5d)
+	}
+	for a := 0; a <= totals_4d; a++ { //RESUL
+		log.Println("Data Telah Disimpan 4D :", <-results_4d)
 	}
 	for a := 0; a <= totals_3d; a++ { //RESUL
 		log.Println("Data Telah Disimpan 3D :", <-results_3d)
@@ -118,7 +146,8 @@ func main() {
 	for a := 0; a <= totals_2d; a++ { //RESUL
 		log.Println("Data Telah Disimpan 2D :", <-results_2d)
 	}
-	close(results)
+	close(results_5d)
+	close(results_4d)
 	close(results_3d)
 	close(results_2d)
 	wg.Wait()
