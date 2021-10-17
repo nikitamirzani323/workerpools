@@ -95,19 +95,20 @@ func main() {
 		}
 		mutex.Unlock()
 	}
-	for i := 0; i <= totals_3d; i++ {
+	for i := 0; i <= totals_2d; i++ {
 		mutex.Lock()
 		if i >= 0 && i < 10 {
-			jobs_3d <- datatoto{Permainan: "2D", Nomor: "0" + strconv.Itoa(i), Bet: 150}
+			jobs_2d <- datatoto{Permainan: "2D", Nomor: "0" + strconv.Itoa(i), Bet: 150}
 		}
 		if i >= 10 && i <= 99 {
-			jobs_3d <- datatoto{Permainan: "2D", Nomor: strconv.Itoa(i), Bet: 150}
+			jobs_2d <- datatoto{Permainan: "2D", Nomor: strconv.Itoa(i), Bet: 150}
 		}
 		mutex.Unlock()
 	}
 	close(jobs)
 	close(jobs_3d)
 	close(jobs_2d)
+
 	for a := 0; a <= totals; a++ { //RESUL
 		log.Println("Data Telah Disimpan :", <-results)
 	}
@@ -119,9 +120,8 @@ func main() {
 	}
 	close(results)
 	close(results_3d)
-	close(results_3d)
+	close(results_2d)
 	wg.Wait()
-
 	elsapsed := time.Since(start)
 	fmt.Println("Waktu :", elsapsed)
 }
